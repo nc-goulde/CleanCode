@@ -1,6 +1,6 @@
 package junit.framework;
 
-public class ComparisonCompactor {
+public class CompactComparer {
 
 	private static final String ELLIPSIS= "...";
 	private static final String DELTA_END= "]";
@@ -12,7 +12,7 @@ public class ComparisonCompactor {
 	private int fPrefix;
 	private int fSuffix;
 
-	public ComparisonCompactor(int contextLength, String expected, String actual) {
+	public CompactComparer(int contextLength, String expected, String actual) {
 		fContextLength= contextLength;
 		fExpected= expected;
 		fActual= actual;
