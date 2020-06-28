@@ -12,21 +12,19 @@ public class CompactComparer {
 	private int fPrefix;
 	private int fSuffix;
 
-	public CompactComparer(int contextLength, String expected, String actual) {
+	public String compare(String expected, String actual, int contextLength, String message) {
 		fContextLength= contextLength;
 		fExpected= expected;
 		fActual= actual;
-	}
 
-	public String compact(String message) {
 		if (fExpected == null || fActual == null || areStringsEqual())
 			return Assert.format(message, fExpected, fActual);
 
 		findCommonPrefix();
 		findCommonSuffix();
-		String expected= compactString(fExpected);
-		String actual= compactString(fActual);
-		return Assert.format(message, expected, actual);
+		String compactExpected= compactString(fExpected);
+		String compactActual= compactString(fActual);
+		return Assert.format(message, compactExpected, compactActual);
 	}
 
 	private String compactString(String source) {
