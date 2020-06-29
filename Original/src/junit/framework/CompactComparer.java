@@ -38,15 +38,7 @@ public class CompactComparer {
 	}
 
 	private static String findCommonSuffix(String expected, String actual, String commonPrefix) {
-		int expectedSuffix= expected.length() - 1;
-		int actualSuffix= actual.length() - 1;
-
-		for (; actualSuffix >= 0 && expectedSuffix >= 0; actualSuffix--, expectedSuffix--) {
-			if (expected.charAt(expectedSuffix) != actual.charAt(actualSuffix))
-				break;
-		}
-
-		String commonSuffix = expected.substring(expectedSuffix + 1);
+		String commonSuffix = reverse(findCommonPrefix(reverse(expected), reverse(actual)));
 
 		int commonLength = commonPrefix.length() + commonSuffix.length();
 		boolean hasOverlap = commonLength > expected.length() || commonLength > actual.length();
