@@ -6,65 +6,72 @@ public class CompactComparer {
 	private static final String DELTA_END= "]";
 	private static final String DELTA_START= "[";
 
-	private int fContextLength;
-	private String fExpected;
-	private String fActual;
-	private int fPrefix;
-	private int fSuffix;
+	public static String compare(String expected, String actual, int contextLength, String message) {
+		if (expected == null || actual == null || expected.equals(actual))
+			return Assert.format(message, expected, actual);
 
-	public String compare(String expected, String actual, int contextLength, String message) {
-		fContextLength= contextLength;
-		fExpected= expected;
-		fActual= actual;
+		String commonPrefix = findCommonPrefix(expected, actual);
+		String commonSuffix = findCommonSuffix(expected, actual, commonPrefix);
 
-		if (fExpected == null || fActual == null || areStringsEqual())
-			return Assert.format(message, fExpected, fActual);
+		String contextualPrefix = trimToContext(commonPrefix, contextLength);
+		String contextualSuffix = reverse(trimToContext(reverse(commonSuffix), contextLength));
 
-		findCommonPrefix();
-		findCommonSuffix();
-		String compactExpected= compactString(fExpected);
-		String compactActual= compactString(fActual);
+		String uniqueExpectedPart = getUniquePart(expected, commonPrefix, commonSuffix);
+		String uniqueActualPart = getUniquePart(actual, commonPrefix, commonSuffix);
+
+		String compactExpected= applyCompactFormat(contextualPrefix, uniqueExpectedPart, contextualSuffix);
+		String compactActual= applyCompactFormat(contextualPrefix, uniqueActualPart, contextualSuffix);
+
 		return Assert.format(message, compactExpected, compactActual);
 	}
 
-	private String compactString(String source) {
-		String result= DELTA_START + source.substring(fPrefix, source.length() - fSuffix + 1) + DELTA_END;
-		if (fPrefix > 0)
-			result= computeCommonPrefix() + result;
-		if (fSuffix > 0)
-			result= result + computeCommonSuffix();
-		return result;
-	}
+	private static String findCommonPrefix(String expected, String actual) {
+		int end= Math.min(expected.length(), actual.length());
 
-	private void findCommonPrefix() {
-		fPrefix= 0;
-		int end= Math.min(fExpected.length(), fActual.length());
-		for (; fPrefix < end; fPrefix++) {
-			if (fExpected.charAt(fPrefix) != fActual.charAt(fPrefix))
+		int prefixIndex;
+		for (prefixIndex = 0; prefixIndex < end; prefixIndex++) {
+			if (expected.charAt(prefixIndex) != actual.charAt(prefixIndex))
 				break;
 		}
+
+		return expected.substring(0, prefixIndex);
 	}
 
-	private void findCommonSuffix() {
-		int expectedSuffix= fExpected.length() - 1;
-		int actualSuffix= fActual.length() - 1;
-		for (; actualSuffix >= fPrefix && expectedSuffix >= fPrefix; actualSuffix--, expectedSuffix--) {
-			if (fExpected.charAt(expectedSuffix) != fActual.charAt(actualSuffix))
+	private static String findCommonSuffix(String expected, String actual, String commonPrefix) {
+		int expectedSuffix= expected.length() - 1;
+		int actualSuffix= actual.length() - 1;
+
+		for (; actualSuffix >= 0 && expectedSuffix >= 0; actualSuffix--, expectedSuffix--) {
+			if (expected.charAt(expectedSuffix) != actual.charAt(actualSuffix))
 				break;
 		}
-		fSuffix=  fExpected.length() - expectedSuffix;
+
+		String commonSuffix = expected.substring(expectedSuffix + 1);
+
+		int commonLength = commonPrefix.length() + commonSuffix.length();
+		boolean hasOverlap = commonLength > expected.length() || commonLength > actual.length();
+
+		return hasOverlap ? commonSuffix.substring(1) : commonSuffix;
 	}
 
-	private String computeCommonPrefix() {
-		return (fPrefix > fContextLength ? ELLIPSIS : "") + fExpected.substring(Math.max(0, fPrefix - fContextLength), fPrefix);
+	private static String trimToContext(String commonPart, int contextLength) {
+		if (contextLength >= commonPart.length())
+			return commonPart;
+		else
+			return ELLIPSIS + commonPart.substring(commonPart.length() - contextLength);
 	}
 
-	private String computeCommonSuffix() {
-		int end= Math.min(fExpected.length() - fSuffix + 1 + fContextLength, fExpected.length());
-		return fExpected.substring(fExpected.length() - fSuffix + 1, end) + (fExpected.length() - fSuffix + 1 < fExpected.length() - fContextLength ? ELLIPSIS : "");
+	private static String reverse(String str) {
+		return new StringBuilder(str).reverse().toString();
 	}
 
-	private boolean areStringsEqual() {
-		return fExpected.equals(fActual);
+	private static String getUniquePart(String str, String commonPrefix, String commonSuffix) {
+		int uniqueStartIndex = commonPrefix.length();
+		int uniqueEndIndex = str.length() - commonSuffix.length();
+		return str.substring(uniqueStartIndex, uniqueEndIndex);
+	}
+
+	private static String applyCompactFormat(String contextualPrefix, String uniquePart, String contextualSuffix) {
+		return contextualPrefix + DELTA_START + uniquePart + DELTA_END + contextualSuffix;
 	}
 }
