@@ -6,8 +6,12 @@ public class CompactComparer {
 	private static final String DELTA_END= "]";
 	private static final String DELTA_START= "[";
 
+	public static String compare(String expected, String actual, int contextLength) {
+		return compare(expected, actual, contextLength, null);
+	}
+
 	public static String compare(String expected, String actual, int contextLength, String message) {
-		if (expected == null || actual == null || expected.equals(actual))
+		if (isSimpleComparison(expected, actual))
 			return Assert.format(message, expected, actual);
 
 		String commonPrefix = findCommonPrefix(expected, actual);
@@ -19,10 +23,14 @@ public class CompactComparer {
 		String uniqueExpectedPart = getUniquePart(expected, commonPrefix, commonSuffix);
 		String uniqueActualPart = getUniquePart(actual, commonPrefix, commonSuffix);
 
-		String compactExpected= applyCompactFormat(contextualPrefix, uniqueExpectedPart, contextualSuffix);
-		String compactActual= applyCompactFormat(contextualPrefix, uniqueActualPart, contextualSuffix);
+		String formattedExpected= applyCompactFormat(contextualPrefix, uniqueExpectedPart, contextualSuffix);
+		String formattedActual= applyCompactFormat(contextualPrefix, uniqueActualPart, contextualSuffix);
 
-		return Assert.format(message, compactExpected, compactActual);
+		return Assert.format(message, formattedExpected, formattedActual);
+	}
+
+	private static boolean isSimpleComparison(String expected, String actual) {
+		return expected == null || actual == null || expected.equals(actual);
 	}
 
 	private static String findCommonPrefix(String expected, String actual) {
