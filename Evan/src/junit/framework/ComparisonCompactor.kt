@@ -57,7 +57,7 @@ data class ComparisonCompactor(
             private const val ELLIPSIS = "..."
         }
 
-        fun getTrimmedSuffix(contextLength: Int) =
+        fun getTrimmedSuffix(contextLength: Int): String =
                 "${commonSuffix.take(contextLength)}${fillerCharacter(commonSuffix, contextLength)}"
 
         fun getTrimmedPrefix(contextLength: Int): String =
@@ -70,7 +70,7 @@ data class ComparisonCompactor(
                     ""
                 }
 
-        fun trimPrefixAndSuffixFrom(string: String) =
+        fun trimPrefixAndSuffixFrom(string: String): String =
                 string.removeSurrounding(prefix = commonPrefix, suffix = commonSuffix)
     }
 
